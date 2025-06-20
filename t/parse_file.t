@@ -7,7 +7,6 @@ use FindBin qw/$Bin/;
 unshift @INC, "$Bin/../lib";
 }
 
-use lib "$ENV{HOME}/perl5/lib/perl5";
 use PerlMIDI::Parser;
 use Test::More;
 
