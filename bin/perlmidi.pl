@@ -24,7 +24,7 @@ my @tracks = map { PerlMIDI::Parser::load_file(path => $_) } @files;
 my $device = PerlMIDI::Device->new(path => $dev_path);
 
 my $seq = PerlMIDI::Sequencer->new(
-    bpm    => 160,
+	bpm    => 160,
 	device => $device,
 	tracks => \@tracks,
 );
