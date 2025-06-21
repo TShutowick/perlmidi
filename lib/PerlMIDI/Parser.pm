@@ -66,6 +66,8 @@ sub parse_notes {
 		$notes = [$notes];
 	}
 
+	$notes = [grep { $_ ne '_' } @$notes]; # remove rest notes
+
 	for my $note (@$notes) {
 		if ($note !~ /^\d+$/) {
 			die "$note is not a note";
