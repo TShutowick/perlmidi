@@ -1,5 +1,19 @@
 package PerlMIDI::Utils;
 
+=head1 NAME
+
+PerlMIDI::Utils - Utility functions for generating MIDI messages
+
+=head1 SYNOPSIS
+
+  my $note_on = note_on_bytes(0, 60, 127); # Channel 0, Middle C, velocity 127
+
+  my $note_off = note_off_bytes(0, 60, 0); # Channel 0, Middle C, velocity 0
+
+  my $program_change = program_change_bytes(0, 10); # Channel 0, Program Change to patch 10
+
+=cut
+
 use strict;
 use warnings;
 
