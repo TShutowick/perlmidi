@@ -22,6 +22,7 @@ is_deeply({ %{PerlMIDI::Parser::load_file(path => $file)} }, {
 	speed => 1,
 	length => 4,
 	position => 0,
+	program => 1,
 });
 
 

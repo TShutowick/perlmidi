@@ -17,6 +17,8 @@ sub load_file {
 	my $channel = $spec->{channel} // die "no channel specified in $path";
 	my $speed = $spec->{speed} || 1;
 
+	my $program = $spec->{program} // 0;
+
 	my %sequences;
 	while (my ($seq_name, $seq_spec) = each %{ $spec->{sequences} }) {
 		for my $notes (@$seq_spec) {
@@ -33,7 +35,8 @@ sub load_file {
 		channel => $channel,
 		speed   => $speed,
 		notes   => \@track_notes,
-	)
+		program => $program,
+	);
 }
 
 sub parse_notes {

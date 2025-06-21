@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Time::HiRes qw/time/;
+use PerlMIDI::Utils qw/program_change_bytes/;
 
 use constant TICKS_PER_BEAT => 64;
 
@@ -16,6 +17,13 @@ sub new {
 	
 	die "No device provided" unless $params{device};
 	die "No tracks provided" unless $params{tracks} && @{ $params{tracks} };
+
+	# switch all tracks to their "program", which is the
+	# instrument they should play
+	for my $track (@{ $params{tracks} }) {
+		my $bytes = program_change_bytes($track->{channel}, $track->{program});
+		$params{device}->write_bytes($bytes);
+	}
 
 	return bless({
 		tracks => $params{tracks},

@@ -19,6 +19,7 @@ sub new {
 		length 	 => scalar @notes,
 		position => 0,
 		channel  => $params{channel} || 0,
+		program  => $params{program} || 1,
 		speed    => $params{speed} || 1,
 	}, __PACKAGE__);
 }

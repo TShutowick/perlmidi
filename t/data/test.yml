@@ -1,5 +1,6 @@
 channel: 0
 speed: 1
+program: 1
 definitions:
   a_maj_7: [55,61,64]
   e_maj:   [64,68,71]
