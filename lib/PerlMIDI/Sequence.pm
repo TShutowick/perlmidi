@@ -1,5 +1,11 @@
 package PerlMIDI::Sequence;
 
+=head1 NAME
+
+PerlMIDI::Sequence - A sequence of MIDI notes to be played in a loop
+
+=cut
+
 use PerlMIDI::Utils qw/note_on_bytes note_off_bytes TICKS_PER_BEAT/;
 
 use strict; 

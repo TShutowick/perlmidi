@@ -21,7 +21,7 @@ PerlMIDI::Sequencer - Sends MIDI messages to a device at a specified BPM
   );
 
   while (1) {
-	  $seq->play();
+	  $seq->tick();
   }
 
 =cut
@@ -32,6 +32,9 @@ sub new {
 	my $bpm = $params{bpm} // 120;
 
 	my $tick_length = 60 / $bpm / TICKS_PER_BEAT;
+
+	# tests can override the clock function to simulate passage of time
+	my $clock = $params{clock} // sub { time() };
 	
 	die "No device provided" unless $params{device};
 	die "No tracks provided" unless $params{tracks} && @{ $params{tracks} };
@@ -46,13 +49,31 @@ sub new {
 	return bless({
 		tracks => $params{tracks},
 		tick_length => $tick_length,
-		last_tick   => time(),
+		last_tick  	=> $clock->(),
 		tick_number => TICKS_PER_BEAT - 1,
 		device      => $params{device},
+		clock       => $clock,
 	}, $class);
 }
 
-=head2 update_tick
+=head2 tick
+
+Meant to be called in a loop. Checks if enough time has passed
+to advance the tick counter. If so, writes the next bytes to the MIDI device
+for each track.
+
+=cut
+
+sub tick {
+	my $self = shift;
+
+	return unless $self->_update_tick();
+
+	$self->_write_next_bytes();
+}
+
+
+=head2 _update_tick
 
 Checks if enough time has passed to advance the tick counter.
 If enough time has passed, it increments the tick counter and
@@ -60,10 +81,10 @@ returns 1, otherwise returns 0.
 
 =cut
 
-sub update_tick {
+sub _update_tick {
 	my $self = shift;
 
- 	my $now = time();
+ 	my $now = $self->_get_time();
 
 	return 0 if $now - $self->{last_tick} < $self->{tick_length};
 
@@ -78,10 +99,25 @@ sub update_tick {
 	return 1;
 }
 
-sub play {
-	my $self = shift;
+=head2 _get_time
 
-	return unless $self->update_tick();
+Convenience method to call the time function used by the sequencer.
+
+=cut
+
+sub _get_time {
+	my $self = shift;
+	return $self->{clock}->();
+}
+
+=head2 _write_next_bytes
+
+Writes the next MIDI bytes for each track to the device.
+
+=cut
+
+sub _write_next_bytes {
+	my ($self) = @_;
 
 	for my $track (@{ $self->{tracks} }) {
 		# if tick_number is not a multiple of note_length,

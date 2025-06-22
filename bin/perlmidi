@@ -32,5 +32,5 @@ my $seq = PerlMIDI::Sequencer->new(
 );
 
 while(1) {
-	my $next = $seq->play() or next;
+	$seq->tick();
 }
