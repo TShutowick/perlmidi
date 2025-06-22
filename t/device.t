@@ -4,23 +4,17 @@ use warnings;
 
 BEGIN {
 use FindBin qw/$Bin/;
-unshift @INC, "$Bin/../lib";
+unshift @INC, "$Bin/lib";
 }
 
 use Test::More;
-use PerlMIDI::Device;
-use File::Temp qw/tempfile/;
-use File::Slurp;
+use TmpDevice;
 
-my ($fh, $filename) = tempfile();
-
-my $device = PerlMIDI::Device->new(path => $filename);
+my $device = TmpDevice->new();
 
 $device->write_bytes([100,0,0]);
 
-undef $device;
-
-my $output = read_file($filename);
+my $output = $device->get_bytes();
 
 is_deeply([unpack('C*', $output)], [100,0,0]);
 
