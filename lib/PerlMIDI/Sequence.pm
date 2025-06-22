@@ -14,11 +14,9 @@ use warnings;
 sub new {
 	my ($class, %params) = @_;
 
-	my @notes = map {
-		ref $_ ? $_ : [$_]
-	} @{ $params{notes} // [] };
-
-	die "no notes provided" unless @notes;
+	# TODO the notes param should be renamed to steps, as it is a sequence of steps
+	my $steps = $params{notes} // [];
+	_sanitize_steps($steps);
 
 	my $speed = $params{speed} // 1;
 	die "speed must be a positive number" unless $speed > 0;
@@ -27,14 +25,50 @@ sub new {
 	my $note_length = int(TICKS_PER_BEAT / $speed);
 
 	return bless({
-		notes    => \@notes,
-		length 	 => scalar @notes,
+		notes    => $steps,
+		length 	 => scalar @$steps,
 		position => 0,
 		channel  => $params{channel} || 0,
 		program  => $params{program} || 1,
 		speed    => $speed,
 		note_length => $note_length,
 	}, __PACKAGE__);
+}
+
+=head2 _sanitize_steps
+
+Steps passed to the constructor can be single notes, arrays of notes (chords),
+undefined (silence)	or empty arrays (also silence).
+
+Notes must be integers between 0 and 127, the MIDI note range.
+
+Anything else is not valid.
+
+This subroutine checks validity and casts all steps to arrays of notes.
+
+=cut
+
+sub _sanitize_steps {
+	my ($steps) = @_;
+
+	die "no steps provided" unless $steps && @$steps;
+
+	for my $i (0 .. $#$steps) {
+		if (!defined $steps->[$i]) {
+			$steps->[$i] = [];
+		}
+		if (!ref $steps->[$i]) {
+			$steps->[$i] = [$steps->[$i]];
+		}
+		if (ref $steps->[$i] ne 'ARRAY') {
+			die "step $i is not an array reference";
+		}
+		for my $note (@{ $steps->[$i] }) {
+			if (!defined $note || $note !~ /^\d+$/ || $note < 0 || $note > 127) {
+				die "step $i contains an invalid note: $note";
+			}
+		}
+	}
 }
 
 =head2 _current_notes
