@@ -1,6 +1,6 @@
 package PerlMIDI::Sequence;
 
-use PerlMIDI::Utils qw/note_on_bytes note_off_bytes/;
+use PerlMIDI::Utils qw/note_on_bytes note_off_bytes TICKS_PER_BEAT/;
 
 use strict; 
 use warnings;
@@ -14,13 +14,20 @@ sub new {
 
 	die "no notes provided" unless @notes;
 
+	my $speed = $params{speed} // 1;
+	die "speed must be a positive number" unless $speed > 0;
+
+	# number of ticks per note for this sequence
+	my $note_length = int(TICKS_PER_BEAT / $speed);
+
 	return bless({
 		notes    => \@notes,
 		length 	 => scalar @notes,
 		position => 0,
 		channel  => $params{channel} || 0,
 		program  => $params{program} || 1,
-		speed    => $params{speed} || 1,
+		speed    => $speed,
+		note_length => $note_length,
 	}, __PACKAGE__);
 }
 
