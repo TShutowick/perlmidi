@@ -16,13 +16,13 @@ use PerlMIDI::Sequencer;
 my $track1 = PerlMIDI::Sequence->new(
 	channel => 0,
 	speed   => 1,
-	notes   => [60, 64, 67],
+	steps   => [60, 64, 67],
 );
 
 my $track2 = PerlMIDI::Sequence->new(
 	channel => 1,
 	speed   => 2,
-	notes   => [50, 54, 57],
+	steps   => [50, 54, 57],
 );
 
 

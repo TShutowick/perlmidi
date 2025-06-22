@@ -14,9 +14,7 @@ use warnings;
 sub new {
 	my ($class, %params) = @_;
 
-	# TODO the notes param should be renamed to steps, as it is a sequence of steps
-	my $steps = $params{notes} // [];
-	_sanitize_steps($steps);
+	my $steps = $params{steps} // [];
 
 	my $speed = $params{speed} // 1;
 	die "speed must be a positive number" unless $speed > 0;
@@ -24,14 +22,17 @@ sub new {
 	# number of ticks per note for this sequence
 	my $note_length = int(TICKS_PER_BEAT / $speed);
 
+	my $messages = _prepare_messages($steps, $params{channel});
+
 	return bless({
-		notes    => $steps,
 		length 	 => scalar @$steps,
 		position => 0,
 		channel  => $params{channel} || 0,
 		program  => $params{program} || 1,
 		speed    => $speed,
 		note_length => $note_length,
+		_on_messages  => $messages->{on},
+		_off_messages => $messages->{off},
 	}, __PACKAGE__);
 }
 
@@ -71,33 +72,44 @@ sub _sanitize_steps {
 	}
 }
 
-=head2 _current_notes
+=head2 _prepare_messages
 
-Returns notes for the current position in the sequence.
-
-=cut
-
-sub _current_notes {
-	my $self = shift;
-	return @{ $self->{notes}[ $self->{position} ] };
-}
-
-=head2 _previous_notes
-
-Returns notes for the previous position in the sequence.
+Converts a sequence of steps, which are arrays of notes, into a sequence of arrays of MIDI messages.
 
 =cut
 
-sub _previous_notes {
-	my $self = shift;
+sub _prepare_messages {
+	my ($steps, $channel) = @_;
 
-	my $prev_position = $self->{position} - 1;
+	$channel //= 0;
 
-	if ($prev_position < 0) {
-		$prev_position = $self->{length} - 1;
+	_sanitize_steps($steps);
+
+	my $length = scalar @$steps;
+
+	my (@on_messages, @off_messages);
+
+	for my $i (0 .. $length - 1) {
+		# Start with note off messages for the previous step,
+		# wrapping around if necessary.
+		my $last_position = $i - 1;
+		if ($last_position < 0) {
+			$last_position = $length - 1;
+		}
+		push @off_messages, [map {
+			note_off_bytes($channel, $_, 0)
+		} @{ $steps->[$last_position] }];
+
+		# Then add note on messages for the current step.
+		push @on_messages, [map {
+			note_on_bytes($channel, $_, 127)
+		} @{ $steps->[$i] }];
 	}
 
-	return @{ $self->{notes}[ $prev_position ] };
+	return {
+		off => \@off_messages,
+		on  => \@on_messages,
+	};
 }
 
 =head2 next_bytes
@@ -110,16 +122,8 @@ and advances to the next position.
 sub next_bytes {
 	my $self = shift;
 
-	my @ret;
-
-	# turn off notes from the last step
-	for my $note ($self->_previous_notes) {
-		push @ret, note_off_bytes($self->{channel}, $note, 0) if defined $note;
-	}
-
-	for my $note ($self->_current_notes) {
-		push @ret, note_on_bytes($self->{channel}, $note, 127) if defined $note;
-	}
+	my @ret = @{ $self->{_off_messages}[ $self->{position} ] };
+	push @ret, @{ $self->{_on_messages}[ $self->{position} ] };
 
 	$self->{position}++;
 	$self->{position} = 0 if $self->{position} >= $self->{length};
@@ -136,10 +140,8 @@ Returns "note off" bytes for all notes in the sequence.
 sub off_bytes {
 	my $self = shift;
 	my @ret;
-	for my $step ( @{ $self->{notes} }) {
-		for my $note (@$step) {
-			push @ret, note_off_bytes($self->{channel}, $note, 0) if defined $note;
-		}
+	for my $step ( @{ $self->{_off_messages} }) {
+		push @ret, @{ $step };
 	}
 	return \@ret;
 }

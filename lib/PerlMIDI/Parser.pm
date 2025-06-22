@@ -34,7 +34,7 @@ sub load_file {
 	return PerlMIDI::Sequence->new(
 		channel => $channel,
 		speed   => $speed,
-		notes   => \@track_notes,
+		steps   => \@track_notes,
 		program => $program,
 	);
 }
