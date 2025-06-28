@@ -16,6 +16,7 @@ PerlMIDI::Utils - Utility functions for generating MIDI messages
 
 use strict;
 use warnings;
+use Carp qw/croak/;
 
 use base 'Exporter';
 
@@ -35,8 +36,12 @@ Returns a MIDI note-on message as an array reference.
 
 =cut
 
-sub note_on_bytes {
+sub note_on_bytes($$$) {
 	my ($channel, $note, $vel) = @_;
+
+	croak "Channel must be defined" unless defined $channel;
+	croak "Channel must be between 0 and 15" unless $channel >= 0 && $channel <= 15;
+
 	my $note_on = 0x90 | $channel;
 	return [$note_on, $note, $vel];
 }
@@ -47,8 +52,12 @@ Returns a MIDI note-off message as an array reference.
 
 =cut
 
-sub note_off_bytes {
+sub note_off_bytes($$$) {
 	my ($channel, $note, $vel) = @_;
+
+	croak "Channel must be defined" unless defined $channel;
+	croak "Channel must be between 0 and 15" unless $channel >= 0 && $channel <= 15;
+
 	my $note_off = 0x80 | $channel;
 	return [$note_off, $note, $vel];
 }
@@ -59,8 +68,12 @@ Returns a MIDI program change message as an array reference.
 
 =cut
 
-sub program_change_bytes {
+sub program_change_bytes($$) {
 	my ($channel, $program) = @_;
+
+	croak "Channel must be defined" unless defined $channel;
+	croak "Channel must be between 0 and 15" unless $channel >= 0 && $channel <= 15;
+
 	my $program_change = 0xC0 | $channel;
 	return [$program_change, $program];
 }
