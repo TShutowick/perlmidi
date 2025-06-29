@@ -27,19 +27,17 @@ declare(
 	message { "Byte value must be a byte (0-255), got $_" }
 );
 
-=head2 Channel
+=head2 Nibble
 
-Int between 0 and 15.
-
-Can also be thought of as a half-byte (4 bits).
+Int between 0 and 15. Used to represent MIDI channels and message types.
 
 =cut
 
 declare(
-	'Channel',
+	'Nibble',
 	as Int,
 	where { $_ >= 0 && $_ <= 15 },
-	message { "Channel number must be between 0 and 15, got $_" }
+	message { "Nible value must be a nible (0-15), got $_" }
 );
 
 =head2 MidiValue

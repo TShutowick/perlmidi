@@ -6,18 +6,18 @@ PerlMIDI::Utils - Utility functions for generating MIDI messages
 
 =head1 SYNOPSIS
 
-  my $note_on = note_on_bytes(0, 60, 127); # Channel 0, Middle C, velocity 127
+  my $note_on = note_on_bytes(0, 60, 127); # Nibble 0, Middle C, velocity 127
 
-  my $note_off = note_off_bytes(0, 60, 0); # Channel 0, Middle C, velocity 0
+  my $note_off = note_off_bytes(0, 60, 0); # Nibble 0, Middle C, velocity 0
 
-  my $program_change = program_change_bytes(0, 10); # Channel 0, Program Change to patch 10
+  my $program_change = program_change_bytes(0, 10); # Nibble 0, Program Change to patch 10
 
 =cut
 
 use strict;
 use warnings;
 
-use PerlMIDI::Types qw/Channel MidiValue/;
+use PerlMIDI::Types qw/Nibble MidiValue/;
 
 use base 'Exporter';
 
@@ -40,9 +40,9 @@ Returns a MIDI note-on message as an array reference.
 sub note_on_bytes($$$) {
 	my ($channel, $note, $vel) = @_;
 
-	Channel->validate($channel);
-	MidiValue->validate($note);
-	MidiValue->validate($vel);
+	Nibble->assert_valid($channel);
+	MidiValue->assert_valid($note);
+	MidiValue->assert_valid($vel);
 
 	my $note_on = 0x90 | $channel;
 	return [$note_on, $note, $vel];
@@ -57,9 +57,9 @@ Returns a MIDI note-off message as an array reference.
 sub note_off_bytes($$$) {
 	my ($channel, $note, $vel) = @_;
 
-	Channel->validate($channel);
-	MidiValue->validate($note);
-	MidiValue->validate($vel);
+	Nibble->assert_valid($channel);
+	MidiValue->assert_valid($note);
+	MidiValue->assert_valid($vel);
 
 	my $note_off = 0x80 | $channel;
 	return [$note_off, $note, $vel];
@@ -74,8 +74,8 @@ Returns a MIDI program change message as an array reference.
 sub program_change_bytes($$) {
 	my ($channel, $program) = @_;
 
-	Channel->validate($channel);
-	MidiValue->validate($program);
+	Nibble->assert_valid($channel);
+	MidiValue->assert_valid($program);
 
 	my $program_change = 0xC0 | $channel;
 	return [$program_change, $program];

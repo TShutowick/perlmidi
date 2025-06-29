@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use PerlMIDI::Sequence;
+use PerlMIDI::Types qw/MidiValue/;
 use YAML qw/LoadFile/;
 
 sub load_file {
@@ -69,12 +70,7 @@ sub parse_notes {
 	$notes = [grep { $_ ne '_' } @$notes]; # remove rest notes
 
 	for my $note (@$notes) {
-		if ($note !~ /^\d+$/) {
-			die "$note is not a note";
-		}
-		if ($note > 127 || $note < 0) {
-			die "$note is out of range";
-		}
+		MidiValue->assert_valid($note);
 	}
 	return (($notes) x $reps);
 }
