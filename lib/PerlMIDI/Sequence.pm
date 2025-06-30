@@ -84,20 +84,21 @@ sub _prepare_messages {
 	my (@on_messages, @off_messages);
 
 	for my $i (0 .. $length - 1) {
-		# Start with note off messages for the previous step,
-		# wrapping around if necessary.
-		my $last_position = $i - 1;
-		if ($last_position < 0) {
-			$last_position = $length - 1;
-		}
-		push @off_messages, [map {
-			note_off_bytes($channel, $_->{pitch}, 0)
-		} @{ $steps->[$last_position] }];
+		my $this_step = $on_messages[$i] //= [];
+		$off_messages[$i] //= [];
 
-		# Then add note on messages for the current step.
-		push @on_messages, [map {
-			note_on_bytes($channel, $_->{pitch}, 127)
-		} @{ $steps->[$i] }];
+		for my $note (@{ $steps->[$i] }) {
+			push @$this_step, note_on_bytes($channel, $note->{pitch}, 127);
+
+			my $end_idx = $i + $note->{duration};
+			# If the note extends beyond the end of the sequence,
+			# wrap around to the beginning.
+			if ($end_idx >= $length) {
+				$end_idx -= $length;
+			}
+			my $off_step = $off_messages[$end_idx] //= [];
+			push @$off_step, note_off_bytes($channel, $note->{pitch}, 0);
+		}
 	}
 
 	return {
