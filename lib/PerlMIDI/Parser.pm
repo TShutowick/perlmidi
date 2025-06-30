@@ -69,10 +69,15 @@ sub parse_notes {
 
 	$notes = [grep { $_ ne '_' } @$notes]; # remove rest notes
 
+	my @note_objects;
 	for my $note (@$notes) {
 		MidiValue->assert_valid($note);
+		push @note_objects, {
+			pitch => $note,
+			duration => 1, # TODO support for variable length
+		};
 	}
-	return (($notes) x $reps);
+	return ((\@note_objects) x $reps);
 }
 
 1;

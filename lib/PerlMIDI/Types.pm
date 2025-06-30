@@ -11,7 +11,7 @@ use warnings;
 
 use Type::Library -base;
 
-use Types::Standard qw/Int/;
+use Types::Standard qw/Int Dict ArrayRef/;
 use Type::Utils qw/declare as where message/;
 
 =head2 Byte
@@ -49,11 +49,51 @@ That leaves 7 bits for the value, which can range from 0 to 127.
 
 =cut
 
-declare(
+my $MidiValue = declare(
 	'MidiValue',
 	as Int,
 	where { $_ >= 0 && $_ <= 127 },
 	message { "midi value must be an integer between 0 and 127, got $_" }
+);
+
+=head2 UInt
+
+Int greater than or equal to 0.
+
+=cut
+
+my $UInt = declare(
+	'UInt',
+	as Int,
+	where { $_ >= 0 },
+	message { "Unsigned integer must be >= 0, got $_" }
+);
+
+=head2 Note
+
+Hashref with a pitch and duration.
+
+=cut
+
+my $Note = declare(
+	'Note',
+	as Dict[
+		pitch => $MidiValue,
+		duration => $UInt,
+	],
+	message { "Note must be a hashref with 'pitch' (0-127) and 'duration' (>= 0) keys, got $_" }
+);
+
+=head2 NoteList
+
+An arrayref of Note objects.
+
+=cut
+
+declare(
+	'NoteList',
+	as ArrayRef[$Note],
+	message { "NoteList must be an arrayref of Note, got $_" }
 );
 
 __PACKAGE__->meta->make_immutable;

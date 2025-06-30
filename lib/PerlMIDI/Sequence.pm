@@ -7,6 +7,7 @@ PerlMIDI::Sequence - A sequence of MIDI notes to be played in a loop
 =cut
 
 use PerlMIDI::Utils qw/note_on_bytes note_off_bytes TICKS_PER_BEAT/;
+use PerlMIDI::Types qw/NoteList/;
 
 use strict; 
 use warnings;
@@ -41,9 +42,9 @@ sub new {
 Steps passed to the constructor can be single notes, arrays of notes (chords),
 undefined (silence)	or empty arrays (also silence).
 
-Notes must be integers between 0 and 127, the MIDI note range.
-
 Anything else is not valid.
+
+Notes must have a pitch and a length (see L<PerlMIDI::Types::Note>).
 
 This subroutine checks validity and casts all steps to arrays of notes.
 
@@ -58,17 +59,10 @@ sub _sanitize_steps {
 		if (!defined $steps->[$i]) {
 			$steps->[$i] = [];
 		}
-		if (!ref $steps->[$i]) {
+		if (ref $steps->[$i] ne 'ARRAY') {
 			$steps->[$i] = [$steps->[$i]];
 		}
-		if (ref $steps->[$i] ne 'ARRAY') {
-			die "step $i is not an array reference";
-		}
-		for my $note (@{ $steps->[$i] }) {
-			if (!defined $note || $note !~ /^\d+$/ || $note < 0 || $note > 127) {
-				die "step $i contains an invalid note: $note";
-			}
-		}
+		NoteList->assert_valid($steps->[$i]);
 	}
 }
 
@@ -97,12 +91,12 @@ sub _prepare_messages {
 			$last_position = $length - 1;
 		}
 		push @off_messages, [map {
-			note_off_bytes($channel, $_, 0)
+			note_off_bytes($channel, $_->{pitch}, 0)
 		} @{ $steps->[$last_position] }];
 
 		# Then add note on messages for the current step.
 		push @on_messages, [map {
-			note_on_bytes($channel, $_, 127)
+			note_on_bytes($channel, $_->{pitch}, 127)
 		} @{ $steps->[$i] }];
 	}
 

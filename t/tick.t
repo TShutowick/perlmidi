@@ -11,18 +11,29 @@ use Test::More;
 use TmpDevice;
 use PerlMIDI::Sequence;
 use PerlMIDI::Sequencer;
+use Devel::Confess;
 
 
 my $track1 = PerlMIDI::Sequence->new(
 	channel => 0,
 	speed   => 1,
-	steps   => [60, 64, 67],
+	steps   => [
+		map +{
+			pitch => $_,
+			duration => 1,
+		}, (60, 64, 67)
+	],
 );
 
 my $track2 = PerlMIDI::Sequence->new(
 	channel => 1,
 	speed   => 2,
-	steps   => [50, 54, 57],
+	steps   => [
+		map +{
+			pitch => $_,
+			duration => 1,
+		}, (50, 54, 57)
+	],
 );
 
 

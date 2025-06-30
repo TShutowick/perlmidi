@@ -12,23 +12,31 @@ use TmpDevice;
 use PerlMIDI::Sequence;
 
 my $steps = [
-	[1,2,3],
+	[
+		{pitch => 1, duration => 1},
+		{pitch => 2, duration => 1},
+		{pitch => 3, duration => 1},
+	],
 	[],
-	100,
+	[{pitch => 100, duration => 1}],
 	undef,
 ];
 
 PerlMIDI::Sequence::_sanitize_steps($steps);
 
 is_deeply($steps, [
-	[1,2,3],
+	[
+		{pitch => 1, duration => 1},
+		{pitch => 2, duration => 1},
+		{pitch => 3, duration => 1},
+	],
 	[],
-	[100],
+	[{pitch => 100, duration => 1}],
 	[],
 ], 'sanitize steps');
 
 $steps = [
-	1,
+	[{pitch => 1, duration => 1}],
 ];
 
 my $messages = PerlMIDI::Sequence::_prepare_messages($steps,0);
@@ -47,7 +55,11 @@ is_deeply($messages, {
 }, 'prepare messages');
 
 my $seq = PerlMIDI::Sequence->new(
-	steps => [ [1],[2],[3] ],
+	steps => [
+		[{pitch => 1, duration => 1}],
+		[{pitch => 2, duration => 1}],
+		[{pitch => 3, duration => 1}],
+	],
 );
 
 is_deeply($seq->off_bytes, [

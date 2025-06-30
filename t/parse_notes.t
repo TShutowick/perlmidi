@@ -20,17 +20,21 @@ my @tests = (
 	{
 		name => "single note",
 		string => "1",
-		want => [[1]],
+		want => [[{pitch => 1, duration => 1}]],
 	},
 	{
 		name => "multiple notes",
 		string => "3x100",
-		want => [[100],[100],[100]],
+		want => [ ([{pitch => 100, duration => 1}]) x 3],
 	},
 	{
 		name => "named chord",
 		string => '3x$chord',
-		want => [[1,2,3],[1,2,3],[1,2,3]],
+		want => [
+			[map +{pitch => $_, duration => 1}, 1..3],
+			[map +{pitch => $_, duration => 1}, 1..3],
+			[map +{pitch => $_, duration => 1}, 1..3],
+		],
 		definitions => {
 			chord => [1,2,3],
 		},
@@ -38,7 +42,7 @@ my @tests = (
 	{
 		name => "named note",
 		string => '3x$note',
-		want => [[1],[1],[1]],
+		want => [ ([{pitch=>1, duration=>1}]) x3 ],
 		definitions => {
 			note => 1,
 		},

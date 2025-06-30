@@ -1,6 +1,8 @@
 use strict;
 use warnings;
 
+use Devel::Confess;
+
 
 BEGIN {
 use FindBin qw/$Bin/;
