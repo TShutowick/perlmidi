@@ -31,7 +31,9 @@ sub new {
 
 	my $bpm = $params{bpm} // 120;
 
-	my $tick_length = 60 / $bpm / TICKS_PER_BEAT;
+	my $beat_length = 60 / $bpm; # length of a beat in seconds
+
+	my $tick_length = $beat_length / TICKS_PER_BEAT;
 
 	# tests can override the clock function to simulate passage of time
 	my $clock = $params{clock} // sub { time() };

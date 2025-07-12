@@ -17,6 +17,7 @@ sub new {
 
 	my $steps = $params{steps} // [];
 
+	# speed of 1 means one note per beat, speed of 2 means two notes per beat, etc.
 	my $speed = $params{speed} // 1;
 	die "speed must be a positive number" unless $speed > 0;
 

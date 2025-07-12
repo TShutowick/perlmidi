@@ -39,7 +39,7 @@ my @tracks = map { PerlMIDI::Parser::load_file(path => $_) } @files;
 my $device = PerlMIDI::Device->new(path => $dev_path);
 
 my $seq = PerlMIDI::Sequencer->new(
-	bpm    => 240,
+	bpm    => $tempo,
 	device => $device,
 	tracks => \@tracks,
 );
