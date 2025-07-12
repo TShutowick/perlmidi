@@ -45,11 +45,21 @@ sub parse_notes {
 	my $definitions = shift;
 
 	my $reps = 1;
-	# 1x123 or 1x$note
+	my $duration = 1;
+	# 'x' represents repetitions, '+' represents duration
+	# # Examples:
+	# 	2x123 -> 2 repetitions of notes 123
+	# 	2+123 -> hold notes 123 for 2 steps
+	# 	123 -> 1 repetition of notes 123 with 1 step duration
+	# 	2x$notes -> 2 repetitions of notes defined in $notes
 	if ($sequence =~ s/^(\d+)x//) {
 		$reps = $1;
+	} elsif ($sequence =~ s/^(\d+)\+//) {
+		$duration = $1;
 	}
 	my $notes;
+	# If the sequence starts with a dollar sign, it refers to a definition
+	# hey, that's kinda like perl
 	if ($sequence =~ s/^\$//) {
 		$notes = $definitions->{$sequence} or die "definition for $sequence not found";
 		if (ref $notes && ref $notes ne 'ARRAY') {
@@ -74,7 +84,7 @@ sub parse_notes {
 		MidiValue->assert_valid($note);
 		push @note_objects, {
 			pitch => $note,
-			duration => 1, # TODO support for variable length
+			duration => $duration,
 		};
 	}
 	return ((\@note_objects) x $reps);

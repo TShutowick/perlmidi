@@ -61,11 +61,14 @@ sequences:
     - 8x$fs_min # Play F# minor chord 8 times
     - 8x$cs_min # Play C# minor chord 8 times
     - 16x$b_min # Play B minor chord 16 times
+  ending:
+    - 8+$a_maj_7 # Hold A major 7 chord for 8 steps
 structure:
   - verse
   - verse
   - chorus
   - chorus
+  - ending
 ```
 
 ---
