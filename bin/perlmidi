@@ -3,7 +3,8 @@
 use strict;
 use warnings;
 
-# Usage: perl perlmidi.pl <directory_with_yml_files> [<midi_device_path>]
+use Getopt::Long;
+use Pod::Usage;
 
 BEGIN {
 	use FindBin qw/$Bin/;
@@ -16,9 +17,21 @@ use PerlMIDI::Sequencer;
 
 # $dir should be a directory containing .yml files with MIDI tracks
 # $dev_path should be a path to a MIDI device, or '/dev/stdout' for testing
-my ($dir, $dev_path) = @ARGV;
+my $dir;
+my $dev_path = '/dev/stdout';
+my $tempo = 100;
+my $help;
 
-$dev_path ||= '/dev/stdout';
+GetOptions(
+	'dir=s'      => \$dir,
+	'device=s'   => \$dev_path,
+	'tempo=i'    => \$tempo,
+	'help|?'     => \$help,
+) or pod2usage(2);
+
+pod2usage(1) if $help;
+
+pod2usage("-message" => "Directory not specified", "-exitval" => 2) unless $dir;
 
 my @files = glob( "$dir/*.yml") or die "no files in $dir";
 my @tracks = map { PerlMIDI::Parser::load_file(path => $_) } @files;
@@ -26,7 +39,7 @@ my @tracks = map { PerlMIDI::Parser::load_file(path => $_) } @files;
 my $device = PerlMIDI::Device->new(path => $dev_path);
 
 my $seq = PerlMIDI::Sequencer->new(
-	bpm    => 160,
+	bpm    => 240,
 	device => $device,
 	tracks => \@tracks,
 );
@@ -34,3 +47,37 @@ my $seq = PerlMIDI::Sequencer->new(
 while(1) {
 	$seq->tick();
 }
+
+__END__
+
+=head1 NAME
+
+perlmidi.pl - A simple MIDI sequencer in Perl
+
+=head1 SYNOPSIS
+
+perlmidi.pl --dir /path/to/data --device /dev/midi0 --tempo 120
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--dir>
+
+Directory containing MIDI sequences in YAML format.
+
+=item B<--device>
+
+Path to the MIDI device to send output to. Defaults to '/dev/stdout'.
+
+=item B<--tempo>
+
+Sets the tempo in beats per minute. Defaults to 100.
+
+=item B<--help>
+
+Prints this help message and exits.
+
+=back
+
+=cut
