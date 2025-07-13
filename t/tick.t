@@ -64,20 +64,20 @@ my @expected = (
 		description => 'Program Change to patch 1 on channel 1 on second track',
 	},
 	{
-		bytes => [0x80, 67, 0],
-		description => "Note Off for note 67 on channel 0 on first track",
-	},
-	{
 		bytes => [0x90, 60, 127],
 		description => "Note On for note 60 on channel 0 on first track",
 	},
 	{
-		bytes => [0x81, 57, 0],
-		description => "Note Off for note 57 on channel 1 on second track",
+		bytes => [0x80, 67, 0],
+		description => "Note Off for note 67 on channel 0 on first track",
 	},
 	{
 		bytes => [0x91, 50, 127],
 		description => "Note On for note 50 on channel 1 on second track",
+	},
+	{
+		bytes => [0x81, 57, 0],
+		description => "Note Off for note 57 on channel 1 on second track",
 	},
 	# half way between first and second beat - track 2 has notes because it's at double speed
 	{

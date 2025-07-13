@@ -10,6 +10,8 @@ unshift @INC, "$Bin/lib";
 use Test::More;
 use TmpDevice;
 use PerlMIDI::Sequence;
+use aliased 'PerlMIDI::Message::Channel::NoteOn';
+use aliased 'PerlMIDI::Message::Channel::NoteOff';
 
 my $steps = [
 	[
@@ -41,18 +43,20 @@ $steps = [
 
 my $messages = PerlMIDI::Sequence::_prepare_messages($steps,0);
 
-is_deeply($messages, {
-	off => [
-		[
-			[0x80, 1, 0],
-		],
+is_deeply($messages, [
+	[
+		NoteOff->new(
+			channel  => 0,
+			note     => 1,
+			velocity => 0,
+		),
+		NoteOn->new(
+			channel  => 0,
+			note     => 1,
+			velocity => 127,
+		),
 	],
-	on  => [
-		[
-			[0x90, 1, 127],
-		],
-	],
-}, 'prepare messages');
+], 'prepare messages');
 
 my $seq = PerlMIDI::Sequence->new(
 	steps => [

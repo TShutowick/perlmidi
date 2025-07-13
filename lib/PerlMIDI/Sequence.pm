@@ -6,8 +6,11 @@ PerlMIDI::Sequence - A sequence of MIDI notes to be played in a loop
 
 =cut
 
-use PerlMIDI::Utils qw/note_on_bytes note_off_bytes TICKS_PER_BEAT/;
+use PerlMIDI::Utils qw/TICKS_PER_BEAT/;
 use PerlMIDI::Types qw/NoteList/;
+
+use aliased 'PerlMIDI::Message::Channel::NoteOn';
+use aliased 'PerlMIDI::Message::Channel::NoteOff';
 
 use strict; 
 use warnings;
@@ -33,8 +36,7 @@ sub new {
 		program  => $params{program} || 1,
 		speed    => $speed,
 		note_length => $note_length,
-		_on_messages  => $messages->{on},
-		_off_messages => $messages->{off},
+		_messages => $messages,
 	}, __PACKAGE__);
 }
 
@@ -82,30 +84,33 @@ sub _prepare_messages {
 
 	my $length = scalar @$steps;
 
-	my (@on_messages, @off_messages);
+	my @messages;
 
 	for my $i (0 .. $length - 1) {
-		my $this_step = $on_messages[$i] //= [];
-		$off_messages[$i] //= [];
+		my $this_step = $messages[$i] //= [];
 
 		for my $note (@{ $steps->[$i] }) {
-			push @$this_step, note_on_bytes($channel, $note->{pitch}, 127);
-
 			my $end_idx = $i + $note->{duration};
 			# If the note extends beyond the end of the sequence,
 			# wrap around to the beginning.
 			if ($end_idx >= $length) {
 				$end_idx -= $length;
 			}
-			my $off_step = $off_messages[$end_idx] //= [];
-			push @$off_step, note_off_bytes($channel, $note->{pitch}, 0);
+			my $off_step = $messages[$end_idx] //= [];
+			push @$off_step, NoteOff->new(
+				note     => $note->{pitch},
+				velocity => 0,
+				channel  => $channel,
+			);
+			push @$this_step, NoteOn->new(
+				note     => $note->{pitch},
+				velocity => 127,
+				channel  => $channel,
+			);
 		}
 	}
 
-	return {
-		off => \@off_messages,
-		on  => \@on_messages,
-	};
+	return \@messages;
 }
 
 =head2 next_bytes
@@ -118,13 +123,12 @@ and advances to the next position.
 sub next_bytes {
 	my $self = shift;
 
-	my @ret = @{ $self->{_off_messages}[ $self->{position} ] };
-	push @ret, @{ $self->{_on_messages}[ $self->{position} ] };
+	my @ret = @{ $self->{_messages}[ $self->{position} ] };
 
 	$self->{position}++;
 	$self->{position} = 0 if $self->{position} >= $self->{length};
 
-	return \@ret;
+	return [map { $_->bytes } @ret];
 }
 
 =head2 off_bytes
@@ -136,8 +140,12 @@ Returns "note off" bytes for all notes in the sequence.
 sub off_bytes {
 	my $self = shift;
 	my @ret;
-	for my $step ( @{ $self->{_off_messages} }) {
-		push @ret, @{ $step };
+	for my $step ( @{ $self->{_messages} }) {
+		push @ret, map {
+			$_->bytes
+		} grep {
+			$_->message_type == 8 
+		} @{ $step };
 	}
 	return \@ret;
 }

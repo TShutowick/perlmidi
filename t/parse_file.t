@@ -12,6 +12,9 @@ unshift @INC, "$Bin/../lib";
 use PerlMIDI::Parser;
 use Test::More;
 
+use aliased 'PerlMIDI::Message::Channel::NoteOn';
+use aliased 'PerlMIDI::Message::Channel::NoteOff';
+
 my $file = "$Bin/data/test.yml";
 my %track = %{PerlMIDI::Parser::load_file(path => $file)};
 
@@ -22,48 +25,38 @@ is_deeply(\%track, {
 	length => 4,
 	position => 0,
 	program => 1,
-	_off_messages => [
+	_messages => [
 		[
-			[0x80, 57, 0],
-			[0x80, 61, 0],
-			[0x80, 66, 0],
+			NoteOn->new(channel => 0, note => 55, velocity => 127),
+			NoteOn->new(channel => 0, note => 61, velocity => 127),
+			NoteOn->new(channel => 0, note => 64, velocity => 127),
+			NoteOff->new(channel => 0, note => 57, velocity => 0),
+			NoteOff->new(channel => 0, note => 61, velocity => 0),
+			NoteOff->new(channel => 0, note => 66, velocity => 0),
 		],
 		[
-			[0x80, 55, 0],
-			[0x80, 61, 0],
-			[0x80, 64, 0],
+			NoteOff->new(channel => 0, note => 55, velocity => 0),
+			NoteOff->new(channel => 0, note => 61, velocity => 0),
+			NoteOff->new(channel => 0, note => 64, velocity => 0),
+			NoteOn->new(channel => 0, note => 55, velocity => 127),
+			NoteOn->new(channel => 0, note => 61, velocity => 127),
+			NoteOn->new(channel => 0, note => 64, velocity => 127),
 		],
 		[
-			[0x80, 55, 0],
-			[0x80, 61, 0],
-			[0x80, 64, 0],
+			NoteOff->new(channel => 0, note => 55, velocity => 0),
+			NoteOff->new(channel => 0, note => 61, velocity => 0),
+			NoteOff->new(channel => 0, note => 64, velocity => 0),
+			NoteOn->new(channel => 0, note => 57, velocity => 127),
+			NoteOn->new(channel => 0, note => 61, velocity => 127),
+			NoteOn->new(channel => 0, note => 66, velocity => 127),
 		],
 		[
-			[0x80, 57, 0],
-			[0x80, 61, 0],
-			[0x80, 66, 0],
-		],
-	],
-	_on_messages => [
-		[
-			[0x90, 55, 127],
-			[0x90, 61, 127],
-			[0x90, 64, 127],
-		],
-		[
-			[0x90, 55, 127],
-			[0x90, 61, 127],
-			[0x90, 64, 127],
-		],
-		[
-			[0x90, 57, 127],
-			[0x90, 61, 127],
-			[0x90, 66, 127],
-		],
-		[
-			[0x90, 57, 127],
-			[0x90, 61, 127],
-			[0x90, 66, 127],
+			NoteOff->new(channel => 0, note => 57, velocity => 0),
+			NoteOff->new(channel => 0, note => 61, velocity => 0),
+			NoteOff->new(channel => 0, note => 66, velocity => 0),
+			NoteOn->new(channel => 0, note => 57, velocity => 127),
+			NoteOn->new(channel => 0, note => 61, velocity => 127),
+			NoteOn->new(channel => 0, note => 66, velocity => 127),
 		],
 	],
 });
