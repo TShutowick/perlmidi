@@ -124,7 +124,7 @@ sub _write_next_bytes {
 	for my $track (@{ $self->{tracks} }) {
 		# if tick_number is not a multiple of note_length,
 		# that means we are not at the start of a note
-		next if $self->{tick_number} % $track->{note_length};
+		next if $self->{tick_number} % $track->note_length;
 
 		for my $msg (@{ $track->next_bytes }) {
 			$self->{device}->write_bytes($msg);

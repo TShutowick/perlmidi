@@ -16,9 +16,14 @@ use aliased 'PerlMIDI::Message::Channel::NoteOn';
 use aliased 'PerlMIDI::Message::Channel::NoteOff';
 
 my $file = "$Bin/data/test.yml";
-my %track = %{PerlMIDI::Parser::load_file(path => $file)};
 
-is_deeply(\%track, {
+my $track = PerlMIDI::Parser::load_file(path => $file);
+
+$track->_messages; # trigger lazy loading
+$track->length; # trigger lazy loading
+$track->note_length; # trigger lazy loading
+
+is_deeply({ %$track }, {
 	channel => 0,
 	speed => 2,
 	note_length => 32,

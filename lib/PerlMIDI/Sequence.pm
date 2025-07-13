@@ -7,7 +7,8 @@ PerlMIDI::Sequence - A sequence of MIDI notes to be played in a loop
 =cut
 
 use PerlMIDI::Utils qw/TICKS_PER_BEAT/;
-use PerlMIDI::Types qw/NoteList/;
+use PerlMIDI::Types qw/NoteList UInt Nibble Byte/;
+use Types::Standard qw/Int ArrayRef InstanceOf/;
 
 use aliased 'PerlMIDI::Message::Channel::NoteOn';
 use aliased 'PerlMIDI::Message::Channel::NoteOff';
@@ -15,29 +16,113 @@ use aliased 'PerlMIDI::Message::Channel::NoteOff';
 use strict; 
 use warnings;
 
-sub new {
+use Moo;
+
+=head2 speed
+
+Multiplier for the note length. 1 means each step is a quarter note, 2 means each step
+is an eighth note, etc.
+
+=cut
+
+has speed => (
+	is       => 'ro',
+	isa      => UInt,
+	default  => 1,
+);
+
+=head2 note_length
+
+The length of each step in ticks.
+
+=cut
+
+# TODO Rename to step_length
+has note_length => (
+	is       => 'ro',
+	isa      => UInt,
+	lazy     => 1,
+	builder  => sub { int(TICKS_PER_BEAT / shift->speed) },
+);
+
+=head2 _messages
+
+Array of arrays of MIDI messages.
+Each inner array is a step in the sequence.
+
+=cut
+
+has _messages => (
+	is       => 'ro',
+	isa      => ArrayRef[ArrayRef[InstanceOf['PerlMIDI::Message']]],
+	required => 1,
+);
+
+=head2 length
+
+The number of steps in the sequence.
+
+=cut
+
+# this might be overkill, but perl is slow so why not cache the array length
+has length => (
+	is       => 'ro',
+	isa      => UInt,
+	lazy     => 1,
+	builder  => sub { scalar @{ shift->_messages } },
+);
+
+=head2 position
+
+The current position in the sequence. Starts at 0, increments every time next_bytes is called,
+and wraps around to 0 when it reaches the end of the sequence.
+
+=cut
+
+has position => (
+	is       => 'rw',
+	isa      => UInt,
+	default  => 0,
+);
+
+=head2 channel
+
+The MIDI channel that notes will be played on.
+
+=cut
+
+has channel => (
+	is       => 'ro',
+	isa      => Nibble,
+	default => 0,
+);
+
+=head2 program
+
+Sets the MIDI program (instrument) for the sequence.
+
+=cut
+
+has program => (
+	is       => 'ro',
+	isa      => Byte,
+	default  => 1,
+);
+
+
+=head2 BUILDARGS
+
+In addition to the parameters documented above, this method accepts a C<steps> parameter,
+which should be an array of NoteList objects. They will be converted into Message objects.
+
+=cut
+
+sub BUILDARGS {
 	my ($class, %params) = @_;
 
-	my $steps = $params{steps} // [];
+	my $messages = _prepare_messages($params{steps}, $params{channel});
 
-	# speed of 1 means one note per beat, speed of 2 means two notes per beat, etc.
-	my $speed = $params{speed} // 1;
-	die "speed must be a positive number" unless $speed > 0;
-
-	# number of ticks per note for this sequence
-	my $note_length = int(TICKS_PER_BEAT / $speed);
-
-	my $messages = _prepare_messages($steps, $params{channel});
-
-	return bless({
-		length 	 => scalar @$steps,
-		position => 0,
-		channel  => $params{channel} || 0,
-		program  => $params{program} || 1,
-		speed    => $speed,
-		note_length => $note_length,
-		_messages => $messages,
-	}, __PACKAGE__);
+	return {%params, _messages => $messages};
 }
 
 =head2 _sanitize_steps
@@ -125,8 +210,8 @@ sub next_bytes {
 
 	my @ret = @{ $self->{_messages}[ $self->{position} ] };
 
-	$self->{position}++;
-	$self->{position} = 0 if $self->{position} >= $self->{length};
+	$self->position( $self->{position} + 1 );
+	$self->position(0) if $self->position >= $self->length;
 
 	return [map { $_->bytes } @ret];
 }
