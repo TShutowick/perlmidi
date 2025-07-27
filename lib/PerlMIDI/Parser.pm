@@ -87,7 +87,10 @@ sub parse_notes {
 			duration => $duration,
 		};
 	}
-	return ((\@note_objects) x $reps);
+
+	my @rests;
+	push @rests, [] while --$duration > 0; # fill with rests if duration is more than 1
+	return ((\@note_objects) x $reps), @rests; # return repetitions and rests
 }
 
 1;

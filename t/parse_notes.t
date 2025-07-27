@@ -47,6 +47,11 @@ my @tests = (
 			note => 1,
 		},
 	},
+	{
+		name => "note with duration",
+		string => '3+100',
+		want => [[{pitch=>100, duration=>3}], [], []],
+	},
 );
 
 for my $test (@tests) {
