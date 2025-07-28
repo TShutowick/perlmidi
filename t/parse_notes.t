@@ -52,6 +52,11 @@ my @tests = (
 		string => '3+100',
 		want => [[{pitch=>100, duration=>3}], [], []],
 	},
+	{
+		name => "silence",
+		string => '3x_ ',
+		want => [[], [], []],
+	},
 );
 
 for my $test (@tests) {

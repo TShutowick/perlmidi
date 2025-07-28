@@ -44,6 +44,9 @@ sub parse_notes {
 	my $sequence = shift;
 	my $definitions = shift;
 
+	# remove leading and trailing whitespace
+	$sequence =~ s/^\s+|\s+$//g;
+
 	my $reps = 1;
 	my $duration = 1;
 	# 'x' represents repetitions, '+' represents duration

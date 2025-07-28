@@ -18,7 +18,7 @@ Writes a list of bytes to the MIDI device.
 
 sub write_bytes {
 	my ($self, $msg) = @_;
-	
+
    	my $fh = $self->{fh};
 
 	my $packed = pack('C*', @$msg);
