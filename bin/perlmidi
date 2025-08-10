@@ -14,12 +14,14 @@ BEGIN {
 use PerlMIDI::Parser;
 use PerlMIDI::Device;
 use PerlMIDI::Sequencer;
+use PerlMIDI::Constants;
 
 # $dir should be a directory containing .yml files with MIDI tracks
 # $dev_path should be a path to a MIDI device, or '/dev/stdout' for testing
 my $dir;
 my $dev_path = '/dev/stdout';
-my $tempo = 100;
+my $input_path;
+my $tempo;
 my $help;
 
 GetOptions(
@@ -27,7 +29,14 @@ GetOptions(
 	'device=s'   => \$dev_path,
 	'tempo=i'    => \$tempo,
 	'help|?'     => \$help,
+	'input=s'    => \$input_path,
 ) or pod2usage(2);
+
+if ($tempo && $input_path) {
+	pod2usage("-message" => "Cannot specify both --tempo and --input");
+}
+
+$tempo ||= 100;  # Default tempo is 100 BPM
 
 pod2usage(1) if $help;
 
@@ -37,6 +46,13 @@ my @files = glob( "$dir/*.yml") or die "no files in $dir";
 my @tracks = map { PerlMIDI::Parser::load_file(path => $_) } @files;
 
 my $device = PerlMIDI::Device->new(path => $dev_path);
+my $input_device;
+if ($input_path) {
+	$input_device = PerlMIDI::Device->new(
+		path => $input_path,
+		mode => '<',
+	);
+}
 
 my $seq = PerlMIDI::Sequencer->new(
 	bpm    => $tempo,
@@ -45,7 +61,15 @@ my $seq = PerlMIDI::Sequencer->new(
 );
 
 while(1) {
-	$seq->tick();
+	if ($input_device) {
+		my $bytes = $input_device->read_bytes(1)
+			or last;
+		if ($bytes->[0] eq BYTE_CLOCK) {
+			$seq->tick();
+		}
+	} else {
+		$seq->tick();
+	}
 }
 
 __END__
@@ -77,6 +101,10 @@ Sets the tempo in beats per minute. Defaults to 100.
 =item B<--help>
 
 Prints this help message and exits.
+
+=item B<--input>
+
+Path to a MIDI input device. If specified, the sequencer will read MIDI clock signals from this device instead of ticking automatically.
 
 =back
 
