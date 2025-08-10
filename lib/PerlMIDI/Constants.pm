@@ -15,6 +15,8 @@ our @EXPORT = qw/
 	BYTE_CONTROL
 	BYTE_NOTE_ON
 	BYTE_NOTE_OFF
+	BYTE_AFTERTOUCH
+	BYTE_CHANNEL_PRESSURE
 /;
 
 use constant {
@@ -27,6 +29,8 @@ use constant {
 	BYTE_CONTROL   => 0xB0, # MIDI control change byte (last nibble is the channel)
 	BYTE_NOTE_ON   => 0x90, # MIDI note on byte (last nibble is the channel)
 	BYTE_NOTE_OFF  => 0x80, # MIDI note off byte (last nibble is the channel)
+	BYTE_AFTERTOUCH 	  => 0xA0, # MIDI aftertouch byte (last nibble is the channel)
+	BYTE_CHANNEL_PRESSURE => 0xD0, # MIDI channel pressure byte (last nibble is the channel)
 };
 
 1;

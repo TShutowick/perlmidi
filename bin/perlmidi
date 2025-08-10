@@ -90,6 +90,20 @@ my %dispatch = (
 		my $velocity = $bytes->[1];
 		$device->write_bytes([$note_off, $note, $velocity]);
 	},
+	BYTE_CHANNEL_PRESSURE, sub {
+		my $channel = shift;
+		my $bytes = $input_device->read_bytes(1);
+		my $pressure = $bytes->[0];
+		my $channel_pressure = BYTE_CHANNEL_PRESSURE | $channel;
+		$device->write_bytes([$channel_pressure, $pressure]);
+	},
+	BYTE_AFTERTOUCH, sub {
+		my $channel = shift;
+		my $bytes = $input_device->read_bytes(1);
+		my $aftertouch = BYTE_AFTERTOUCH | $channel;
+		my $pressure = $bytes->[0];
+		$device->write_bytes([$aftertouch, $pressure]);
+	},
 
 );
 
