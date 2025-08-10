@@ -1,0 +1,106 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+use Pod::Usage;
+use POSIX qw(mkfifo);
+
+my ($path, $interval, $fh);
+
+BEGIN {
+	my $help;
+	my $tempo;
+
+	GetOptions(
+		'path=s'     => \$path,
+		'tempo=i'    => \$tempo,
+		'help|?'     => \$help,
+	) or pod2usage(2);
+
+	pod2usage(1) if $help;
+
+	$path  ||= "/tmp/perlmidi_clock";
+	$tempo ||= 120;
+
+	if (-e $path) {
+		die "clock is already running\n";
+	}
+
+	mkfifo($path, 0700) or die "could not create FIFO: $!";
+	open($fh, '>', $path) or die "could not open FIFO: $!";
+	binmode $fh;
+	$fh->autoflush(1);
+
+	my $ppq = 24;  # Pulses per quarter note
+	$interval = 60 / ($tempo * $ppq);  # seconds per MIDI clock tick
+}
+
+
+# when the script is terminated, delete the temp file.
+sub tear_down {
+	print "Stopping MIDI clock...\n";
+	close($fh);
+	unlink($path);
+	exit 0;
+}
+
+# Even if no one is listening, keep the clock ticking.
+# It will hang until another process reads from the FIFO.
+$SIG{PIPE} = "IGNORE";
+
+
+$SIG{INT} = \&tear_down;
+$SIG{TERM} = \&tear_down;
+$SIG{__DIE__} = \&tear_down;
+
+while (1) {
+	if (syswrite($fh, chr(0xF8), 1)) {
+		# Wait for the next clock tick and repeat
+		select(undef, undef, undef, $interval);
+		next;
+	}
+	if ($!{EPIPE}) {
+		# If no one is reading, just wait a bit and try again
+		sleep 1;
+		next;
+	} else {
+		# unexpected error
+		die "Error writing to FIFO: $!";
+	}
+}
+
+__END__
+
+=head1 NAME
+
+clock - A MIDI clock
+
+=head1 SYNOPSIS
+
+clock --path /tmp/perlmidi_clock --tempo 120
+
+=head1 DESCRIPTION
+
+This script sends a MIDI clock signal to a specified FIFO
+path at a specified tempo.
+
+=head1 OPTIONS
+
+=over 8
+
+=item B<--path>
+
+Path to the FIFO for MIDI clock output. Defaults to /tmp/perlmidi_clock. Must not already exist.
+
+=item B<--tempo>
+
+Sets the tempo in beats per minute. Defaults to 120.
+
+=item B<--help>
+
+Prints this help message and exits.
+
+=back
+
