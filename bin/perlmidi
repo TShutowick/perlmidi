@@ -60,13 +60,38 @@ my $seq = PerlMIDI::Sequencer->new(
 	tracks => \@tracks,
 );
 
+my %dispatch = (
+	BYTE_START,    sub { },
+	BYTE_CONTINUE, sub { },
+	BYTE_STOP,     sub { },
+	BYTE_RESET,    sub { $seq->reset() },
+	BYTE_CLOCK,    sub { $seq->tick() },
+	BYTE_CONTROL,  sub { 
+		my $channel = shift;
+		# get the controller number and value from the next two bytes
+		my $bytes = $input_device->read_bytes(2);
+		# honestly I'm not sure what, if anything, to do with these
+		# but at least we read them
+	},
+);
+
+
+
 while(1) {
 	if ($input_device) {
 		my $bytes = $input_device->read_bytes(1)
 			or last;
-		if ($bytes->[0] eq BYTE_CLOCK) {
-			$seq->tick();
+		if (my $action = $dispatch{$bytes->[0]}) {
+			$action->();
+			next;
 		}
+		my $message_type = $bytes->[0] & 0xF0;
+		if (my $action = $dispatch{$message_type}) {
+			my $channel = $bytes->[0] & 0x0F;
+			$action->($channel);
+			next;
+		}
+		warn "Unknown MIDI byte: " . $bytes->[0];
 	} else {
 		$seq->tick();
 	}

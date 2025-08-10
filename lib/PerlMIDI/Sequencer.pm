@@ -59,6 +59,20 @@ sub new {
 	}, $class);
 }
 
+=head2 reset
+
+Resets the tick counter to the end of the current beat.
+
+=cut
+
+sub reset {
+	my $self = shift;
+
+	$self->{tick_number} = TICKS_PER_BEAT - 1; # start at the end of the beat
+
+	return;
+}
+
 =head2 tick
 
 Meant to be called in a loop. Checks if enough time has passed
