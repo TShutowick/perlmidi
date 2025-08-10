@@ -109,7 +109,7 @@ while(1) {
 			$action->($channel);
 			next;
 		}
-		warn "Unknown MIDI byte: " . $bytes->[0];
+		warn sprintf("Unknown MIDI byte: 0x%02X", $bytes->[0]);
 	} else {
 		$seq->tick();
 	}
