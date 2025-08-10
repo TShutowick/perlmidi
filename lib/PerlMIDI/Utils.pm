@@ -25,11 +25,7 @@ our @EXPORT_OK = qw/
 	note_on_bytes
 	note_off_bytes
 	program_change_bytes
-	TICKS_PER_BEAT
 /;
-
-# Number of ticks per beat, used to calculate the tick length. Every 64 ticks is one beat.
-use constant TICKS_PER_BEAT => 64;
 
 =head2 note_on_bytes
 

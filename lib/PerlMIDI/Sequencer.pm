@@ -4,7 +4,8 @@ use strict;
 use warnings;
 
 use Time::HiRes qw/time/;
-use PerlMIDI::Utils qw/program_change_bytes TICKS_PER_BEAT/;
+use PerlMIDI::Utils qw/program_change_bytes/;
+use PerlMIDI::Constants;
 
 =head1 NAME
 

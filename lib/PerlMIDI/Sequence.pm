@@ -6,7 +6,7 @@ PerlMIDI::Sequence - A sequence of MIDI notes to be played in a loop
 
 =cut
 
-use PerlMIDI::Utils qw/TICKS_PER_BEAT/;
+use PerlMIDI::Constants;
 use PerlMIDI::Types qw/NoteList UInt Nibble Byte/;
 use Types::Standard qw/Int ArrayRef InstanceOf/;
 
