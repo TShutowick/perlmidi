@@ -73,6 +73,24 @@ my %dispatch = (
 		# honestly I'm not sure what, if anything, to do with these
 		# but at least we read them
 	},
+	# forward note messages to the device
+	BYTE_NOTE_ON,  sub {
+		my $channel = shift;
+		my $bytes = $input_device->read_bytes(2);
+		my $note_on = BYTE_NOTE_ON | $channel;
+		my $note = $bytes->[0];
+		my $velocity = $bytes->[1];
+		$device->write_bytes([$note_on, $note, $velocity]);
+	},
+	BYTE_NOTE_OFF,  sub {
+		my $channel = shift;
+		my $bytes = $input_device->read_bytes(2);
+		my $note_off = BYTE_NOTE_OFF | $channel;
+		my $note = $bytes->[0];
+		my $velocity = $bytes->[1];
+		$device->write_bytes([$note_off, $note, $velocity]);
+	},
+
 );
 
 

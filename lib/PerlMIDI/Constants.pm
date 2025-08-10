@@ -13,6 +13,8 @@ our @EXPORT = qw/
 	BYTE_STOP
 	BYTE_RESET
 	BYTE_CONTROL
+	BYTE_NOTE_ON
+	BYTE_NOTE_OFF
 /;
 
 use constant {
